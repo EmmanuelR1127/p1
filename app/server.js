@@ -78,4 +78,10 @@ if (require.main === module) {
     });
 }
 
+app.waitUntilReady = async () => {
+    if (dbInitialized) return;
+    await initDb();
+};
+
+app.pool = pool;
 module.exports = app;
