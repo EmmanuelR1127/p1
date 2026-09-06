@@ -24,6 +24,12 @@ async function initDb() {
     `);
 }
 
+// Initialiser la DB avant d'exporter l'app
+initDb().catch((error) => {
+    console.error("Erreur de connexion à PostgreSQL :", error);
+    process.exit(1);
+});
+
 app.get("/health", (req, res) => {
     res.json({ status: "OK", message: "API en bonne santé" });
 });
@@ -55,16 +61,9 @@ app.post("/tasks", async (req, res) => {
 });
 
 if (require.main === module) {
-    initDb()
-        .then(() => {
-            app.listen(port, () => {
-                console.log(`API démarrée sur http://localhost:${port}`);
-            });
-        })
-        .catch((error) => {
-            console.error("Erreur de connexion à PostgreSQL :", error);
-            process.exit(1);
-        });
+    app.listen(port, () => {
+        console.log(`API démarrée sur http://localhost:${port}`);
+    });
 }
 
 module.exports = app;
