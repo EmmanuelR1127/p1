@@ -14,21 +14,27 @@ const pool = new Pool({
   database: process.env.POSTGRES_DB || "tasksdb"
 });
 
+let dbInitialized = false;
+
 async function initDb() {
-    await pool.query(`
-        CREATE TABLE IF NOT EXISTS tasks (
-            id SERIAL PRIMARY KEY,
-            title TEXT NOT NULL,
-            done BOOLEAN DEFAULT FALSE
-        );
-    `);
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS tasks (
+                id SERIAL PRIMARY KEY,
+                title TEXT NOT NULL,
+                done BOOLEAN DEFAULT FALSE
+            );
+        `);
+        dbInitialized = true;
+    } catch (error) {
+        console.error("Erreur de connexion à PostgreSQL :", error);
+        if (process.env.NODE_ENV === 'production') {
+            process.exit(1);
+        }
+    }
 }
 
-// Initialiser la DB avant d'exporter l'app
-initDb().catch((error) => {
-    console.error("Erreur de connexion à PostgreSQL :", error);
-    process.exit(1);
-});
+initDb();
 
 app.get("/health", (req, res) => {
     res.json({ status: "OK", message: "API en bonne santé" });
@@ -39,6 +45,9 @@ app.get("/version", (req, res) => {
 });
 
 app.get("/tasks", async (req, res) => {
+    if (!dbInitialized) {
+        return res.status(503).json({ error: "Base de données non disponible" });
+    }
     try {
         const result = await pool.query("SELECT * FROM tasks ORDER BY id ASC");
         res.json(result.rows);
@@ -48,6 +57,9 @@ app.get("/tasks", async (req, res) => {
 });
 
 app.post("/tasks", async (req, res) => {
+    if (!dbInitialized) {
+        return res.status(503).json({ error: "Base de données non disponible" });
+    }
     try {
         const { title } = req.body;
         const result = await pool.query(
