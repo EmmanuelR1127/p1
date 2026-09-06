@@ -10,7 +10,7 @@ let tasks = [
 ];  
 
 app.get("/health", (req, res) => {   
-  res.json({ status: "OK", message: "API en bonne santé" }); 
+  res.json({ status: "BROKEN", message: "API en bonne santé" }); 
 });  
 
 app.get("/tasks", (req, res) => {   
