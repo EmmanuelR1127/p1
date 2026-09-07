@@ -11,7 +11,11 @@ let tasks = [
 
 app.get("/health", (req, res) => {   
   res.json({ status: "OK", message: "API en bonne santé" }); 
-});  
+});
+
+app.get("/version", (req, res) => {
+  res.json({ version: "1.0.0" });
+});
 
 app.get("/tasks", (req, res) => {   
   res.json(tasks); 
